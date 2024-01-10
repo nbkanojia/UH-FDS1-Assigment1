@@ -6,69 +6,141 @@ Created on Sun Dec 17 14:07:41 2023
 """
 
 import numpy as np
-import pandas as pd
 import matplotlib.pyplot as plt
 
 def read_data():
+    """
+    Return the read csv file return salar.
+
+    Returns
+    -------
+    data : numpy array
+        return ther numby array list.
+
+    """
+    #read csv file
     data = np.genfromtxt('data1-1.csv', delimiter=',')
     return data
 
+def calculate_bin_size(data):
+    """
+    Use the Freedman-Diaconis rule calcualte the bin size for givin data.
 
+    Parameters
+    ----------
+    data : numpy array
+        bin size calculate for data
 
+    Returns
+    -------
+    bin_size : int
+        calculated bin size.
+
+    """
+    # Calculate bin size using Freedman-Diaconis rule
+    iqr = np.percentile(data, 75) - np.percentile(data, 25)
+    bin_width = int(2 * iqr / (len(data) ** (1/3)))
+    bin_size = np.ceil((max(data)- min(data))/bin_width).astype(int)
+    
+    return bin_size
+    
+def calculate_pdf(data):
+    """
+    Calculate the psd mean
+
+    Parameters
+    ----------
+    data : numpy array
+        data for which pdf to be calculated.
+
+    Returns
+    -------
+    xdst : int
+        calculate bin centre locations and bin widths.
+    ydst : TYPE
+        ydist is a discrete PDF.
+    wdst : TYPE
+        width of bins.
+    cdst : TYPE
+        cumulative distribution.
+    oedge : TYPE
+        bin edges.
+    xmean : TYPE
+        mean value.
+
+    """
+    #get the bin size
+    bin_size = calculate_bin_size(data)
+    ohist, oedge = np.histogram(data, bins=bin_size)
+
+    # calculate bin centre locations and bin widths
+    xdst= (oedge[1:]+oedge[:-1])/2
+    wdst=oedge[1:]-oedge[:-1]
+
+    # normalise the distribution
+    #ydist is a discrete PDF
+    ydst = ohist/np.sum(ohist)
+
+    #cumulative distribution
+    cdst=np.cumsum(ydst)
+    
+    #Mean value
+    xmean=np.sum(xdst*ydst).round(2)
+    print("Mean : " , data.mean())
+    print("PDF Mean : " , xmean)
+    
+    return xdst, ydst, wdst, cdst, oedge, xmean
+
+def plot_graph(data):
+    """
+    plot the graph and display values on ot
+
+    Parameters
+    ----------
+    data : numpy array
+        DESCRIPTION.
+
+    Returns
+    -------
+    None.
+
+    """
+    
+    xdst, ydst, wdst, cdst, oedge, xmean = calculate_pdf(data)
+    
+    plt.figure(0,dpi=300)
+
+    # Plot the PDF
+    plt.bar(xdst, ydst, width=0.8*wdst)
+
+    plt.xlabel('Salary', fontsize=15)
+    plt.ylabel('Probability', fontsize=15)
+    plt.title("Salaries distribution of European country")
+
+    #and plot it
+    text = ''' Mean value: {}'''.format(xmean.astype(int))
+    plt.plot([xmean,xmean],[0.0,max(ydst)], c='red', label=text)
+
+    #The value of X should be such that 33% of people have a salary above X.
+    indx=np.argmin(np.abs(cdst-0.67))
+    xlow=oedge[indx]
+
+    plt.bar(xdst[indx:],ydst[indx:], width=0.9*wdst[indx:], color='green')
+
+    text =  \
+    ''' 33% of people have a \nsalary above {}'''.format(xlow.astype(int))
+    plt.plot([xlow,xlow],[0.0,max(ydst)], c='orange', label=text)
+
+    plt.legend()
+    plt.savefig("22085391.png",dpi=300)
+    plt.show()
+    
+    
 ###### Main Function ######
 
+#read the csv data
 data = read_data()
 
-ohist, oedge = np.histogram(data, bins=32)
+#calculate the pdf and plot the graph
+plot_graph(data)
 
-
-# calculate bin centre locations and bin widths
-xdst= (oedge[1:]+oedge[:-1])/2
-wdst=oedge[1:]-oedge[:-1]
-
-# normalise the distribution
-#ydist is a discrete PDF
-ydst = ohist/np.sum(ohist)
-
-#cumulative distribution
-cdst=np.cumsum(ydst)
-
-plt.figure(0)
-
-# Plot the PDF
-plt.bar(xdst, ydst, width=0.8*wdst)
-
-plt.xlabel('Salaries in some European country', fontsize=15)
-plt.ylabel('Probability', fontsize=15)
-
-
-#Mean value
-xmean=np.sum(xdst*ydst)
-#and plot it
-plt.plot([xmean,xmean],[0.0,max(ydst)], c='red')
-text = ''' Mean value: {}'''.format(xmean.astype(int))
-plt.text(x=xmean, y=max(ydst), s=text, fontsize=12, c='red')
-
-
-#The value of X should be such that 33% of people have a salary above X.
-indx=np.argmin(np.abs(cdst-0.67))
-xlow=oedge[indx]
-
-plt.bar(xdst[indx:],ydst[indx:], width=0.9*wdst[indx:], color='green')
-
-#find the fraction of claims £5k+
-hdst=ydst*(xdst >= 56003)
-#plt.bar(xdst, hdst, width=0.9*wdst, color='orange')
-
-
-
-plt.plot([xlow,xlow],[0.0,max(ydst)], c='orange')
-text = ''' 33% of people have a \nsalary above {}'''.format(xlow.astype(int))
-plt.text(x=xlow+xlow*0.10, y=max(ydst)-0.012, s=text, fontsize=12, c='orange')
-
-#plt.figure(1)
-#plt.hist(data, bins=32, edgecolor='w',density=True)
-#plt.xlabel('Claim value, £', fontsize=15)
-#plt.ylabel('Probability', fontsize=15)
-
-plt.show()
