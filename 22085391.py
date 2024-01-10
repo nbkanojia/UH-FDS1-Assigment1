@@ -41,7 +41,7 @@ def calculate_bin_size(data):
     iqr = np.percentile(data, 75) - np.percentile(data, 25)
     bin_width = int(2 * iqr / (len(data) ** (1/3)))
     bin_size = np.ceil((max(data)- min(data))/bin_width).astype(int)
-    
+    print("bin_size",bin_size)
     return bin_size
     
 def calculate_pdf(data):
@@ -87,9 +87,16 @@ def calculate_pdf(data):
     #Mean value
     xmean=np.sum(xdst*ydst).round(2)
     print("Mean : " , data.mean())
-    print("PDF Mean : " , xmean)
+    print("PDF Mean(W) : " , xmean)
     
     return xdst, ydst, wdst, cdst, oedge, xmean
+
+def calculate_salary_below_33(cdst,oedge):
+    #The value of X should be such that 33% of people have a salary above X.
+    indx=np.argmin(np.abs(cdst-0.67))
+    xlow=oedge[indx].round(2)
+    print("X:",xlow)
+    return xlow,indx
 
 def plot_graph(data):
     """
@@ -118,17 +125,15 @@ def plot_graph(data):
     plt.title("Salaries distribution of European country")
 
     #and plot it
-    text = ''' Mean value: {}'''.format(xmean.astype(int))
+    text = ''' Mean value(W): {}'''.format(xmean.astype(float))
     plt.plot([xmean,xmean],[0.0,max(ydst)], c='red', label=text)
 
-    #The value of X should be such that 33% of people have a salary above X.
-    indx=np.argmin(np.abs(cdst-0.67))
-    xlow=oedge[indx]
-
+    xlow, indx = calculate_salary_below_33(cdst,oedge)
+    
     plt.bar(xdst[indx:],ydst[indx:], width=0.9*wdst[indx:], color='green')
 
     text =  \
-    ''' 33% of people have a \nsalary above {}'''.format(xlow.astype(int))
+    ''' 33% of people have a \nsalary above(X) {}'''.format(xlow.astype(float))
     plt.plot([xlow,xlow],[0.0,max(ydst)], c='orange', label=text)
 
     plt.legend()
