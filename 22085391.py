@@ -59,7 +59,7 @@ def calculate_pdf(pdf_data):
     Returns
     -------
     xdst : int
-        calculate bin centre locations and bin widths.
+        bin centre locations.
     ydst : int
         ydist is a discrete PDF.
     wdst : int
@@ -97,15 +97,15 @@ def calculate_pdf(pdf_data):
 
 def calculate_salary_below_33(cdst, oedge):
     """
-    calculate the value of X should be such that 33% of peo\
-ple have a salary above X
+    calculate the value of X should be such that 33% of\
+people have a salary above X
 
     Parameters
     ----------
-    cdst : TYPE
-        DESCRIPTION.
-    oedge : TYPE
-        DESCRIPTION.
+    cdst : int
+        cumulative distribution..
+    oedge : int
+        bin edges.
 
     Returns
     -------
